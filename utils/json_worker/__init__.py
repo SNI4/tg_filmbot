@@ -1,1 +1,1 @@
-from . import films, admins, channels, users
+from . import films, channels, users

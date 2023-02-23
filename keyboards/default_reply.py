@@ -1,7 +1,9 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-ikb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
 
-ib1 = KeyboardButton(text='?')
+def create_default():
+    ikb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
 
-ikb.add(ib1)
+    ib1 = KeyboardButton(text='?')
+
+    ikb.add(ib1)

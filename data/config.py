@@ -3,6 +3,6 @@ from environs import Env
 env = Env()
 env.read_env()
 
-TOKEN = env.str("")
-ADMIN_ID =
-ADMIN_USERNAME = 
+TOKEN = env.str("TG_FILMBOT")
+ADMIN_ID = 622655681
+ADMIN_USERNAME = "sn1chz"
