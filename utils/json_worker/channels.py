@@ -1,6 +1,7 @@
 from json import load, dump
 from data.config import ADMIN_ID, ADMIN_USERNAME
 
+
 class DublicateChannelError(Exception):
     pass
 
@@ -8,7 +9,6 @@ class DublicateChannelError(Exception):
 async def get_channels() -> dict:
     with open('data/channels.json', 'r', encoding='utf-8') as f:
         data = load(f)
-        data[str(ADMIN_ID)] = ADMIN_USERNAME
         return data
 
 

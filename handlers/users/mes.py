@@ -1,13 +1,11 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from data.FSMs.auto_add_channel import FSMAAC
 from keyboards.cancel_reply import create_cancel
-from keyboards.default_reply import create_default
 from loader import dp
-from utils.isAdmin import isAdmin
-from utils.json_worker.channels import add_channel
+from utils.misc.isAdmin import isAdmin
+from utils.misc.isUser import isUser
+from utils.validate_subscribes import validate_user
 
 
 @dp.message_handler(content_types=['any'])
@@ -19,6 +17,10 @@ async def message_handle(message: types.Message):
         await message.reply("Перешлите сообщение из канала, который хотите добавить.", reply_markup=create_cancel())
         await FSMAAC.AddChannel.set()
 
+    elif (m == "✅") and (not await isAdmin(user_id)):
+        if not await isUser(user_id):
+            res = await validate_user(user_id, message.from_user.username)
+            await message.reply('success' if res else 'error')
     else:
         await message.reply("123")
 

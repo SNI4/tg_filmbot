@@ -4,10 +4,11 @@ from aiogram.dispatcher import FSMContext
 
 from data.FSMs.auto_add_channel import FSMAAC
 from data.FSMs.manual_add_channel import FSMMAC
+from keyboards.admin_keyboards.admin_default_reply import create_admin_default
 from keyboards.cancel_reply import create_cancel
-from keyboards.default_reply import create_default
+from keyboards.user_keyboards.default_reply import create_default
 from loader import dp
-from utils.json_worker.channels import add_channel
+from utils.json_worker.channels import add_channel, DublicateChannelError
 
 
 @dp.message_handler(state=FSMAAC.AddChannel, content_types=['any'])
@@ -34,7 +35,7 @@ async def save_channelx(message: types.Message, state: FSMContext):
 
     elif message.text.lower() == "отмена":
 
-        await message.reply("Отменено", reply_markup=create_default())
+        await message.reply("Отменено", reply_markup=create_admin_default())
         await state.finish()
 
     else:
@@ -44,7 +45,7 @@ async def save_channelx(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMMAC.id)
 async def manually_add_channel_id(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_default())
+        await message.reply("Отменено", reply_markup=create_admin_default())
         await state.finish()
 
     else:
@@ -62,13 +63,14 @@ async def manually_add_channel_id(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMMAC.title)
 async def manually_add_channel_title(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_default())
+        await message.reply("Отменено", reply_markup=create_admin_default())
         await state.finish()
 
     else:
         try:
             await state.update_data(title=message.text)
-            await message.answer(f"ID канала: {FSMMAC.id}\nНазвание канала: {FSMMAC.title}",
+            data = await state.get_data()
+            await message.answer(f"ID канала: {data['id']}\nНазвание канала: {data['title']}",
                                  reply_markup=create_cancel())
             await message.reply("Теперь введите ссылку на канал")
             await FSMMAC.link.set()
@@ -80,16 +82,21 @@ async def manually_add_channel_title(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMMAC.link)
 async def manually_add_channel_link(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_default())
+        await message.reply("Отменено", reply_markup=create_admin_default())
         await state.finish()
 
     else:
         try:
-            await state.update_data(title=message.text)
-            await message.reply(f"ID канала: {FSMMAC.id}\nНазвание канала: {FSMMAC.title}\nID Канала: {FSMMAC.id}",
+            await state.update_data(link=message.text)
+            data = await state.get_data()
+            await message.reply(f"ID канала: {data['id']}\nНазвание канала: {data['title']}\nСсылка на канал: {data['link']}",
                                 reply_markup=create_cancel())
+            await add_channel(channel_id=data['id'], title=data['title'], username=data['link'])
 
-            await add_channel(channel_id=FSMMAC.id, title=FSMMAC.title, username=FSMMAC.link)
-            await message.reply("Канал " + FSMMAC.title + " успешно добавлен!")
+            await message.reply("Канал " + data['title'] + " успешно добавлен!")
+
+            await state.finish()
+
         except Exception as e:
-            await message.reply("ERROR!\n" + str(e))
+            await message.reply(str(e) + "!", reply_markup=create_admin_default())
+            await state.finish()
