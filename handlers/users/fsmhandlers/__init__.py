@@ -1,1 +1,1 @@
-from . import addchannel
+from . import addchannel, addfilm

@@ -1,1 +1,1 @@
-from . import checkbox_inline, default_reply
+from . import checkbox_inline, default_reply, subscribe_channels
