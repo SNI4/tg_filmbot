@@ -9,34 +9,37 @@ from keyboards.cancel_reply import create_cancel
 from keyboards.user_keyboards.default_reply import create_default
 from loader import dp
 from utils.json_worker.channels import add_channel, DublicateChannelError
+from utils.misc.markreplace import markdowned
 
 
 @dp.message_handler(state=FSMAAC.AddChannel, content_types=['any'])
-async def save_channelx(message: types.Message, state: FSMContext):
-    if message.forward_from_chat.type == "channel":
-
-        if not message.forward_from_chat.username:
-            await message.reply('Не удалось получить ссылку на канал. Попробуйте вручную')
-            await message.answer("Введите ID канала", reply_markup=create_cancel())
-            await FSMMAC.id.set()
-
-        else:
-            try:
-                await message.reply(message.forward_from_chat.id)
-                await add_channel(channel_id=str(message.forward_from_chat.id),
-                                  title=message.forward_from_chat.title,
-                                  username=message.forward_from_chat.username)
-
-                await message.reply("Канал " + message.forward_from_chat.title + " успешно добавлен!")
-                await state.finish()
-
-            except Exception as e:
-                await message.reply(f'ERROR!\n{e}')
-
-    elif message.text.lower() == "отмена":
-
+async def get_channel_to_add(message: types.Message, state: FSMContext):
+    if message.text and message.text.lower() == "отмена":
         await message.reply("Отменено", reply_markup=create_admin_default())
         await state.finish()
+
+    elif message.forward_from_chat:
+        if message.forward_from_chat.type == "channel":
+
+            if not message.forward_from_chat.username:
+                await message.reply('Не удалось получить ссылку на канал. Попробуйте вручную')
+                await message.answer("Введите ID канала", reply_markup=create_cancel())
+                await FSMMAC.id.set()
+
+            else:
+                try:
+                    await add_channel(channel_id=str(message.forward_from_chat.id),
+                                      title=message.forward_from_chat.title,
+                                      username=message.forward_from_chat.username)
+
+                    await message.reply(await markdowned(f"Канал *{message.forward_from_chat.title}* успешно добавлен!"),
+                                        reply_markup=create_admin_default(),
+                                        parse_mode="MarkdownV2")
+                    await state.finish()
+
+                except Exception as e:
+                    await message.reply(f'ERROR!\n{e}',
+                                        reply_markup=create_admin_default())
 
     else:
         await message.reply("Перешлите сообщение из канала!", reply_markup=create_cancel())
@@ -93,7 +96,9 @@ async def manually_add_channel_link(message: types.Message, state: FSMContext):
                                 reply_markup=create_cancel())
             await add_channel(channel_id=data['id'], title=data['title'], username=data['link'])
 
-            await message.reply("Канал " + data['title'] + " успешно добавлен!")
+            await message.reply(await markdowned(f"Канал *{data['title']}* успешно добавлен!"),
+                                reply_markup=create_admin_default(),
+                                parse_mode="MarkdownV2")
 
             await state.finish()
 

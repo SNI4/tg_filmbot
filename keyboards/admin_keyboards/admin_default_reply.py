@@ -2,8 +2,11 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 
 def create_admin_default():
-    ikb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
+    ikb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 
-    ib1 = KeyboardButton(text='?')
+    ib1 = KeyboardButton(text='Добавить канал')
+    ib2 = KeyboardButton(text='Удалить канал')
 
-    ikb.add(ib1)
+    ikb.add(ib1).add(ib2)
+
+    return ikb

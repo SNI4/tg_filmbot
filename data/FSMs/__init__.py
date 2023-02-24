@@ -1,1 +1,1 @@
-from . import auto_add_channel
+from . import auto_add_channel, manual_add_channel

@@ -14,7 +14,7 @@ async def get_admins() -> dict:
     with open('data/users.json', 'r', encoding='utf-8') as f:
         data = load(f)
         for user_id in data.keys():
-            if user_id["admin"]:
+            if data[user_id]["admin"]:
                 admins[user_id] = data[user_id]
 
         return admins

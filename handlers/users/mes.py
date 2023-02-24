@@ -1,10 +1,14 @@
 from aiogram import types
 
 from data.FSMs.auto_add_channel import FSMAAC
+from keyboards.admin_keyboards.admin_default_reply import create_admin_default
 from keyboards.cancel_reply import create_cancel
+from keyboards.user_keyboards.default_reply import create_default
+from keyboards.user_keyboards.subscribe_channels import create_subscribe
 from loader import dp
 from utils.misc.isAdmin import isAdmin
 from utils.misc.isUser import isUser
+from utils.misc.markreplace import markdowned
 from utils.validate_subscribes import validate_user
 
 
@@ -17,10 +21,16 @@ async def message_handle(message: types.Message):
         await message.reply("Перешлите сообщение из канала, который хотите добавить.", reply_markup=create_cancel())
         await FSMAAC.AddChannel.set()
 
+    elif (m == "удалить канал") and (await isAdmin(user_id)):
+        await message.reply("Выберите канал, который хотите убрать",
+                            reply_markup=await create_subscribe(url=False, cancel=True))
+
     elif (m == "✅") and (not await isAdmin(user_id)):
         if not await isUser(user_id):
             res = await validate_user(user_id, message.from_user.username)
             await message.reply('success' if res else 'error')
     else:
-        await message.reply("123")
+        await message.reply(await markdowned('Я вас *не понял*.'),
+                            reply_markup=create_default() if not await isAdmin(user_id) else create_admin_default(),
+                            parse_mode='MarkdownV2')
 

@@ -1,27 +1,27 @@
 import re
 from aiogram import types
-
-from keyboards.default_reply import create_default
+from keyboards.admin_keyboards.admin_default_reply import create_admin_default
+from keyboards.user_keyboards.subscribe_channels import create_subscribe
 from loader import dp, bot
-from utils.json_worker.channels import get_channels, add_channel_sub
+from utils.json_worker.channels import get_channels, add_channel_sub, del_channel
 from utils.json_worker.users import add_user
+from utils.misc.markreplace import markdowned
 
 
 @dp.callback_query_handler()
 async def admin_vote_callback(callback: types.CallbackQuery):
-    if callback.data == 'ck':
-        subscribed_channels = 0
-        for channel_id in (await get_channels()).keys():
-            ucs = re.findall(r"\w*", str(await bot.get_chat_member(chat_id=channel_id, user_id=callback.from_user.id)))
+    if callback.data.startswith('cd'):
+        try:
+            data = await get_channels()
+            channel_id = callback.data.split('?')[1]
+            channel_title = data[channel_id]['title']
+            await del_channel(channel_id)
+            await callback.message.answer(await markdowned(f'Канал *{channel_title}* успешно удален!'),
+                                          reply_markup=await create_subscribe(url=False, cancel=True),
+                                          parse_mode="MarkdownV2")
 
-            try:
-                if ucs[70] != 'left': subscribed_channels += 1
-                await add_channel_sub(channel_id)
+        except Exception as e:
+            await callback.message.reply('ERROR!\n' + str(e))
 
-            except:
-                if ucs[60] != 'left': subscribed_channels += 1
-                await add_channel_sub(channel_id)
-
-        if subscribed_channels == len((await get_channels()).keys()):
-            await add_user(user_id=str(callback.message.from_user.id), username=callback.message.from_user.username)
-            await callback.message.reply("Успешно", reply_markup=create_default())
+    elif callback.data == "cancel":
+        await callback.message.reply('Добро пожаловать', reply_markup=create_admin_default())
