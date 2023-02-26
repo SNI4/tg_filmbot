@@ -25,3 +25,4 @@ async def admin_vote_callback(callback: types.CallbackQuery):
 
     elif callback.data == "cancel":
         await callback.message.reply('Добро пожаловать', reply_markup=create_admin_default())
+

@@ -7,3 +7,4 @@ class FSMAF(StatesGroup):
     media = State()
     desc = State()
     link = State()
+    confirm = State()

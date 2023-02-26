@@ -8,6 +8,7 @@ from keyboards.cancel_reply import create_cancel
 from keyboards.user_keyboards.default_reply import create_default
 from keyboards.user_keyboards.subscribe_channels import create_subscribe
 from loader import dp
+from utils.json_worker.films import get_films
 from utils.misc.isAdmin import isAdmin
 from utils.misc.isUser import isUser
 from utils.misc.markreplace import markdowned
@@ -24,10 +25,8 @@ async def message_handle(message: types.Message):
         await FSMAAC.AddChannel.set()
 
     elif (m == "добавить фильм") and (await isAdmin(user_id)):
-        await message.reply('Введите код, который хотите присвоить новому фильму\n||*Не более 4 цифр*||',
-                            reply_markup=await create_random_code(),
-                            parse_mode="MarkdownV2")
-        await FSMAF.code.set()
+        await message.reply("Выберите:",
+                            reply_markup=create_random_code((await get_films()).keys()))
 
     elif (m == "удалить канал") and (await isAdmin(user_id)):
         await message.reply("Выберите канал, который хотите убрать",
