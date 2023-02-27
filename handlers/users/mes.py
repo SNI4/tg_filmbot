@@ -2,6 +2,7 @@ from aiogram import types
 
 from data.FSMs.add_film import FSMAF
 from data.FSMs.auto_add_channel import FSMAAC
+from keyboards.admin_keyboards.add_film_code import film_code_choose
 from keyboards.admin_keyboards.admin_default_reply import create_admin_default
 from keyboards.admin_keyboards.random_code import create_random_code
 from keyboards.cancel_reply import create_cancel
@@ -25,8 +26,9 @@ async def message_handle(message: types.Message):
         await FSMAAC.AddChannel.set()
 
     elif (m == "добавить фильм") and (await isAdmin(user_id)):
-        await message.reply("Выберите:",
-                            reply_markup=create_random_code((await get_films()).keys()))
+        await message.reply("Введите",
+                            reply_markup=film_code_choose())
+        await FSMAF.code.set()
 
     elif (m == "удалить канал") and (await isAdmin(user_id)):
         await message.reply("Выберите канал, который хотите убрать",

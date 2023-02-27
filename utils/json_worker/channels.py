@@ -37,7 +37,7 @@ async def add_channel_sub(channel_id: str):
             data = load(f)
             data[channel_id]["subscribers"] += 1
             f.seek(0)
-            dump(data, f)
+            dump(data, f, indent=4, ensure_ascii=False)
             f.truncate()
 
     except Exception as e:
@@ -50,7 +50,7 @@ async def del_channel(channel_id):
             data = load(f)
             del data[channel_id]
             f.seek(0)
-            dump(data, f)
+            dump(data, f, indent=4, ensure_ascii=False)
             f.truncate()
     except Exception as e:
         raise Exception(e)

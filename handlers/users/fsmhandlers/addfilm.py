@@ -1,7 +1,7 @@
 from aiogram import types
 
 from aiogram.dispatcher import FSMContext
-
+from random import randint
 from data.FSMs.add_film import FSMAF
 from data.FSMs.auto_add_channel import FSMAAC
 from data.FSMs.manual_add_channel import FSMMAC
@@ -12,7 +12,7 @@ from keyboards.cancel_reply import create_cancel
 from keyboards.user_keyboards.default_reply import create_default
 from loader import dp
 from utils.json_worker.channels import add_channel, DublicateChannelError
-from utils.json_worker.films import get_films
+from utils.json_worker.films import get_films, save_film
 from utils.misc.markreplace import markdowned
 
 
@@ -25,6 +25,18 @@ async def get_film_code(message: types.Message, state: FSMContext):
             await message.answer(await markdowned(f"Код фильма: *{message.text}*"),
                                  parse_mode="MarkdownV2")
             await message.reply('Теперь введите *название* фильма', reply_markup=create_cancel(),
+                                parse_mode="MarkdownV2")
+            await FSMAF.name.set()
+
+        elif message.text is not None and message.text.lower() == "случайный код":
+            codes = (await get_films()).keys()
+            code = str(randint(1, 9999))
+            while code in codes: code = str(randint(1, 9999))
+
+            await state.update_data(code=code)
+            await message.answer(await markdowned(f"Код фильма: *{code}*"),
+                                 parse_mode="MarkdownV2")
+            await message.reply(await markdowned('Теперь введите *название* фильма'), reply_markup=create_cancel(),
                                 parse_mode="MarkdownV2")
             await FSMAF.name.set()
 
@@ -128,9 +140,9 @@ async def get_film_link(message: types.Message, state: FSMContext):
             await state.update_data(link="nolink")
             data = await state.get_data()
             m = await message.answer_photo(caption=await markdowned(f"Код фильма: *{data['code']}*\n"
-                                                                f"Название фильма: *{data['name']}*\n"
-                                                                f"Описание фильма: *{data['desc']}*\n"),
-                                       photo=data['media'], parse_mode="MarkdownV2")
+                                                                    f"Название фильма: *{data['name']}*\n"
+                                                                    f"Описание фильма: *{data['desc']}*\n"),
+                                           photo=data['media'], parse_mode="MarkdownV2")
 
             await m.reply("Сохраняем?", reply_markup=create_save())
             await FSMAF.confirm.set()
@@ -142,9 +154,25 @@ async def get_film_link(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMAF.confirm)
 async def get_confirmation(message: types.Message, state: FSMContext):
     if message.text is not None and message.text.lower() == "сохранить":
-        pass
+        try:
+            data = await state.get_data()
+            await save_film(code=data['code'], title=data['name'], media_id=data['media'],
+                            desc=data['desc'], link=data['link'])
+            await message.reply(await markdowned(f"Фильм *{data['name']}* успешно *добавлен!*"),
+                                parse_mode="MarkdownV2")
+            await message.answer("*Добро пожаловать*", reply_markup=create_admin_default(),
+                                 parse_mode="MarkdownV2")
+            await state.finish()
+
+        except Exception as e:
+            await message.reply(await markdowned(f"*Произошла ошибка!*\n||{str(e)}||"),
+                                parse_mode="MarkdownV2")
+
     elif message.text is not None and message.text.lower() == "выход":
-        pass
+        await state.finish()
+        await message.reply("Отменено!")
+        await message.answer("*Добро пожаловать*", reply_markup=create_admin_default(),
+                             parse_mode="MarkdownV2")
     else:
         await message.reply(await markdowned("Ты отправил какую то *хуйню*! Попробуй еще раз."),
                             reply_markup=create_cancel(), parse_mode="MarkdownV2")

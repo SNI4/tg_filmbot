@@ -25,7 +25,7 @@ async def add_user(user_id: str, username: str):
         data = load(f)
         data[user_id] = {"username": username, "admin": False}
         f.seek(0)
-        dump(data, f)
+        dump(data, f, indent=4, ensure_ascii=False)
         f.truncate()
 
 
@@ -35,7 +35,7 @@ async def give_admin(user_id: str, username: str):
             data = load(f)
             data[user_id]["admin"] = False
             f.seek(0)
-            dump(data, f)
+            dump(data, f, indent=4, ensure_ascii=False)
             f.truncate()
 
     except KeyError:
