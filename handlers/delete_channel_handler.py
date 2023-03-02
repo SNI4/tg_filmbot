@@ -1,10 +1,12 @@
 import re
 from aiogram import types
 from keyboards.admin_keyboards.admin_default_reply import create_admin_default
+from keyboards.user_keyboards.default_reply import create_default
 from keyboards.user_keyboards.subscribe_channels import create_subscribe
 from loader import dp, bot
 from utils.json_worker.channels import get_channels, add_channel_sub, del_channel
 from utils.json_worker.users import add_user
+from utils.misc.isAdmin import isAdmin
 from utils.misc.markreplace import markdowned
 
 
@@ -24,5 +26,6 @@ async def admin_vote_callback(callback: types.CallbackQuery):
             await callback.message.reply('ERROR!\n' + str(e))
 
     elif callback.data == "cancel":
-        await callback.message.reply('Добро пожаловать', reply_markup=create_admin_default())
+        await callback.message.reply('Добро пожаловать',
+                                     reply_markup=create_admin_default() if isAdmin() else create_default())
 

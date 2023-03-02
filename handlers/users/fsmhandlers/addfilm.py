@@ -4,8 +4,10 @@ from aiogram.dispatcher import FSMContext
 from random import randint
 from data.FSMs.add_film import FSMAF
 from data.FSMs.auto_add_channel import FSMAAC
+from data.FSMs.fchoose import FSMCHOOSE
 from data.FSMs.manual_add_channel import FSMMAC
 from keyboards.admin_keyboards.admin_default_reply import create_admin_default
+from keyboards.admin_keyboards.films_action import create_films_action
 from keyboards.admin_keyboards.save_reply import create_save
 from keyboards.cancel_inline import create_cancel_inline
 from keyboards.cancel_reply import create_cancel
@@ -24,7 +26,8 @@ async def get_film_code(message: types.Message, state: FSMContext):
             await state.update_data(code=message.text)
             await message.answer(await markdowned(f"Код фильма: *{message.text}*"),
                                  parse_mode="MarkdownV2")
-            await message.reply('Теперь введите *название* фильма', reply_markup=create_cancel(),
+            await message.reply('Теперь введите *название* фильма',
+                                reply_markup=create_cancel(),
                                 parse_mode="MarkdownV2")
             await FSMAF.name.set()
 
@@ -40,8 +43,16 @@ async def get_film_code(message: types.Message, state: FSMContext):
                                 parse_mode="MarkdownV2")
             await FSMAF.name.set()
 
+        elif message.text is not None and message.text.lower() == "отмена":
+            await state.finish()
+            await message.reply("*Отменено*",
+                                parse_mode="MarkdownV2")
+            await message.answer("Выберите:",
+                                 reply_markup=create_films_action())
+            await FSMCHOOSE.choose.set()
         else:
-            await message.reply(await markdowned("Введите *четырехзначное число*!"), reply_markup=create_cancel(),
+            await message.reply(await markdowned("Введите *четырехзначное число*!"),
+                                reply_markup=create_cancel(),
                                 parse_mode="MarkdownV2")
 
     except Exception as e:
@@ -54,8 +65,11 @@ async def get_film_title(message: types.Message, state: FSMContext):
     try:
         if message.text.lower() == "отмена":
             await state.finish()
-            await message.reply("*Добро пожаловать*", reply_markup=create_admin_default(),
+            await message.reply("*Отменено*",
                                 parse_mode="MarkdownV2")
+            await message.answer("Выберите:",
+                                 reply_markup=create_films_action())
+            await FSMCHOOSE.choose.set()
 
         else:
             await state.update_data(name=message.text)
@@ -63,12 +77,15 @@ async def get_film_title(message: types.Message, state: FSMContext):
             await message.answer(await markdowned(f"Код фильма: *{data['code']}*\n"
                                                   f"Название фильма: *{data['name']}*"),
                                  parse_mode="MarkdownV2")
-            await message.reply("Теперь отправьте *обложку* фильма", reply_markup=create_cancel(),
+            await message.reply("Теперь отправьте *обложку* фильма",
+                                reply_markup=create_cancel(),
                                 parse_mode="MarkdownV2")
             await FSMAF.media.set()
-    except:
-        await message.reply("Это не *текст*!", reply_markup=create_cancel(),
+    except Exception as e:
+        await message.reply(await markdowned("Это не *текст*!"),
+                            reply_markup=create_cancel(),
                             parse_mode="MarkdownV2")
+        print(e)
 
 
 @dp.message_handler(state=FSMAF.media, content_types=['any'])
@@ -81,16 +98,22 @@ async def get_film_media(message: types.Message, state: FSMContext):
             caption=await markdowned(f"Код фильма: *{data['code']}*\n"
                                      f"Название фильма: *{data['name']}*"),
             photo=data['media'], parse_mode="MarkdownV2")
-        await message.reply("Теперь отправьте *описание* фильма", reply_markup=create_cancel(), parse_mode="MarkdownV2")
+        await message.reply("Теперь отправьте *описание* фильма",
+                            reply_markup=create_cancel(),
+                            parse_mode="MarkdownV2")
         await FSMAF.desc.set()
 
     elif message.text is not None and message.text.lower() == "отмена":
         await state.finish()
-        await message.reply("*Добро пожаловать*", reply_markup=create_admin_default(),
+        await message.reply("*Отменено*",
                             parse_mode="MarkdownV2")
+        await message.answer("Выберите:",
+                             reply_markup=create_films_action())
+        await FSMCHOOSE.choose.set()
 
     else:
-        await message.answer(await markdowned('Отправьте *фото*!'), reply_markup=create_cancel(),
+        await message.answer(await markdowned('Отправьте *фото*!'),
+                             reply_markup=create_cancel(),
                              parse_mode="MarkdownV2")
 
 
@@ -98,8 +121,11 @@ async def get_film_media(message: types.Message, state: FSMContext):
 async def get_film_description(message: types.Message, state: FSMContext):
     if message.text is not None and message.text.lower() == "отмена":
         await state.finish()
-        await message.reply("*Добро пожаловать*", reply_markup=create_admin_default(),
+        await message.reply("*Отменено*",
                             parse_mode="MarkdownV2")
+        await message.answer("Выберите:",
+                             reply_markup=create_films_action())
+        await FSMCHOOSE.choose.set()
 
     else:
         await state.update_data(desc=message.text)
@@ -111,7 +137,8 @@ async def get_film_description(message: types.Message, state: FSMContext):
         await message.reply(await markdowned("Теперь отправьте *ссылку для просмотра фильма*"
                                              "\n||Если таковой не имеется, то отправьте "
                                              "что угодно. Ссылка проверяется по||"),
-                            reply_markup=create_cancel(), parse_mode="MarkdownV2")
+                            reply_markup=create_cancel(),
+                            parse_mode="MarkdownV2")
         await FSMAF.link.set()
 
 
@@ -119,8 +146,11 @@ async def get_film_description(message: types.Message, state: FSMContext):
 async def get_film_link(message: types.Message, state: FSMContext):
     if message.text is not None and message.text.lower() == "отмена":
         await state.finish()
-        await message.reply("*Добро пожаловать*", reply_markup=create_admin_default(),
+        await message.reply("*Отменено*",
                             parse_mode="MarkdownV2")
+        await message.answer("Выберите:",
+                             reply_markup=create_films_action())
+        await FSMCHOOSE.choose.set()
 
     elif message.text is not None:
         if "https://" in message.text:
@@ -129,11 +159,13 @@ async def get_film_link(message: types.Message, state: FSMContext):
             await message.answer_photo(caption=await markdowned(f"Код фильма: *{data['code']}*\n"
                                                                 f"Название фильма: *{data['name']}*"
                                                                 f"Описание фильма: *{data['desc']}*"
-                                                                f"Ссылка на фильм: *{data['link']}"
+                                                                f"Ссылка на фильм: "
                                                                 f"||P.S. Ссылка будет в виде *кнопки*||"),
-                                       photo=data['media'], parse_mode="MarkdownV2")
+                                       photo=data['media'],
+                                       parse_mode="MarkdownV2")
 
-            await message.reply("Сохраняем?", reply_markup=create_save())
+            await message.reply("Сохраняем?",
+                                reply_markup=create_save())
             await FSMAF.confirm.set()
 
         else:
@@ -142,13 +174,15 @@ async def get_film_link(message: types.Message, state: FSMContext):
             m = await message.answer_photo(caption=await markdowned(f"Код фильма: *{data['code']}*\n"
                                                                     f"Название фильма: *{data['name']}*\n"
                                                                     f"Описание фильма: *{data['desc']}*\n"),
-                                           photo=data['media'], parse_mode="MarkdownV2")
+                                           photo=data['media'],
+                                           parse_mode="MarkdownV2")
 
             await m.reply("Сохраняем?", reply_markup=create_save())
             await FSMAF.confirm.set()
     else:
         await message.reply("Ты отправил какую то *хуйню*! Попробуй еще раз.",
-                            reply_markup=create_cancel(), parse_mode="MarkdownV2")
+                            reply_markup=create_cancel(),
+                            parse_mode="MarkdownV2")
 
 
 @dp.message_handler(state=FSMAF.confirm)
@@ -160,7 +194,8 @@ async def get_confirmation(message: types.Message, state: FSMContext):
                             desc=data['desc'], link=data['link'])
             await message.reply(await markdowned(f"Фильм *{data['name']}* успешно *добавлен!*"),
                                 parse_mode="MarkdownV2")
-            await message.answer("*Добро пожаловать*", reply_markup=create_admin_default(),
+            await message.answer("*Добро пожаловать*",
+                                 reply_markup=create_admin_default(),
                                  parse_mode="MarkdownV2")
             await state.finish()
 
@@ -170,9 +205,11 @@ async def get_confirmation(message: types.Message, state: FSMContext):
 
     elif message.text is not None and message.text.lower() == "выход":
         await state.finish()
-        await message.reply("Отменено!")
-        await message.answer("*Добро пожаловать*", reply_markup=create_admin_default(),
-                             parse_mode="MarkdownV2")
+        await message.reply("*Отменено*",
+                            parse_mode="MarkdownV2")
+        await message.answer("Выберите:",
+                             reply_markup=create_films_action())
+        await FSMCHOOSE.choose.set()
     else:
         await message.reply(await markdowned("Ты отправил какую то *хуйню*! Попробуй еще раз."),
                             reply_markup=create_cancel(), parse_mode="MarkdownV2")

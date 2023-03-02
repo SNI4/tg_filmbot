@@ -22,3 +22,12 @@ async def save_film(code: str, title: str, media_id: str, desc: str, link: str):
             f.seek(0)
             dump(data, f, indent=4, ensure_ascii=False)
             f.truncate()
+
+
+async def delete_film(code: str):
+    with open('data/films.json', 'r+', encoding='utf-8') as f:
+        data = load(f)
+        del data[code]
+        f.seek(0)
+        dump(data, f, indent=4, ensure_ascii=False)
+        f.truncate()

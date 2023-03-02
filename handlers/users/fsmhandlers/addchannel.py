@@ -3,8 +3,12 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from data.FSMs.auto_add_channel import FSMAAC
+from data.FSMs.cchoose import FSMCCHOOSE
+from data.FSMs.fchoose import FSMCHOOSE
 from data.FSMs.manual_add_channel import FSMMAC
 from keyboards.admin_keyboards.admin_default_reply import create_admin_default
+from keyboards.admin_keyboards.channels_action import create_channels_action
+from keyboards.admin_keyboards.films_action import create_films_action
 from keyboards.cancel_reply import create_cancel
 from keyboards.user_keyboards.default_reply import create_default
 from loader import dp
@@ -15,8 +19,10 @@ from utils.misc.markreplace import markdowned
 @dp.message_handler(state=FSMAAC.AddChannel, content_types=['any'])
 async def get_channel_to_add(message: types.Message, state: FSMContext):
     if message.text and message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_admin_default())
+        await message.reply("Отменено")
         await state.finish()
+        await message.answer("Выберите:", reply_markup=create_channels_action())
+        await FSMCCHOOSE.choose.set()
 
     elif message.forward_from_chat:
         if message.forward_from_chat.type == "channel":
@@ -48,8 +54,11 @@ async def get_channel_to_add(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMMAC.id)
 async def manually_add_channel_id(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_admin_default())
+        await message.reply("Отменено")
         await state.finish()
+        await message.answer("Выберите:",
+                             reply_markup=create_channels_action())
+        await FSMCCHOOSE.choose.set()
 
     else:
         try:
@@ -66,8 +75,11 @@ async def manually_add_channel_id(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMMAC.title)
 async def manually_add_channel_title(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_admin_default())
+        await message.reply("Отменено")
         await state.finish()
+        await message.answer("Выберите:",
+                             reply_markup=create_channels_action())
+        await FSMCCHOOSE.choose.set()
 
     else:
         try:
@@ -85,8 +97,11 @@ async def manually_add_channel_title(message: types.Message, state: FSMContext):
 @dp.message_handler(state=FSMMAC.link)
 async def manually_add_channel_link(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена":
-        await message.reply("Отменено", reply_markup=create_admin_default())
+        await message.reply("Отменено")
         await state.finish()
+        await message.answer("Выберите:",
+                             reply_markup=create_channels_action())
+        await FSMCCHOOSE.choose.set()
 
     else:
         try:
