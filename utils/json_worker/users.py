@@ -20,25 +20,25 @@ async def get_admins() -> dict:
         return admins
 
 
-async def add_user(user_id: str, username: str):
+async def add_user(user_id: str, username: str, admin: bool = False):
     with open('data/users.json',  'r+', encoding='utf-8') as f:
         data = load(f)
-        data[user_id] = {"username": username, "admin": False}
+        data[user_id] = {"username": username, "admin": admin}
         f.seek(0)
         dump(data, f, indent=4, ensure_ascii=False)
         f.truncate()
 
 
-async def give_admin(user_id: str, username: str):
+async def give_admin(user_id: str):
     try:
         with open('data/users.json', 'r+', encoding='utf-8') as f:
             data = load(f)
-            data[user_id]["admin"] = False
+            data[user_id]["admin"] = True
             f.seek(0)
             dump(data, f, indent=4, ensure_ascii=False)
             f.truncate()
+            return True
 
     except KeyError:
-        await add_user(user_id, username)
-        await give_admin(user_id, username)
+        return False
 

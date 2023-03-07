@@ -25,7 +25,8 @@ async def admin_vote_callback(callback: types.CallbackQuery):
         except Exception as e:
             await callback.message.reply('ERROR!\n' + str(e))
 
-    elif callback.data == "cancel":
+    elif callback.data.startswith("cancel"):
+        user_id = callback.data.split('?')[1]
         await callback.message.reply('Добро пожаловать',
-                                     reply_markup=create_admin_default() if isAdmin() else create_default())
+                                     reply_markup=create_admin_default() if await isAdmin(user_id) else create_default())
 

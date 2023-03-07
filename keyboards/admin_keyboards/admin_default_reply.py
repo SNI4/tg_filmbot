@@ -6,6 +6,7 @@ def create_admin_default():
 
     ib1 = KeyboardButton(text='Рекламные каналы')
     ib2 = KeyboardButton(text='Фильмы')
+    ib3 = KeyboardButton(text='Админы')
 
-    ikb.add(ib1).add(ib2)
+    ikb.add(ib1).add(ib2).add(ib3)
     return ikb
