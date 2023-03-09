@@ -22,6 +22,7 @@ from keyboards.user_keyboards.subscribe_channels import create_subscribe
 from loader import dp
 from utils.json_worker.films import get_films
 from utils.misc.get_keyboard import choose_keyboard
+from utils.misc.get_stars import get_stars
 from utils.misc.isAdmin import isAdmin
 from utils.misc.isUser import isUser
 from utils.misc.markreplace import markdowned
@@ -58,6 +59,7 @@ async def message_handle(message: types.Message):
 
     elif m.isdigit():
         await film(message, m, user_id)
+        await message.reply(get_stars(int(message.text)))
 
     elif m == "найти по коду":
         await message.answer("Для того чтобы найти фильм, просто отправьте мне его код.")
@@ -67,5 +69,6 @@ async def message_handle(message: types.Message):
             await message.reply(await markdowned('Я вас *не понял*.'),
                                 reply_markup=await choose_keyboard(user_id),
                                 parse_mode='MarkdownV2')
+
         else:
             await start(message)

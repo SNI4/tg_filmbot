@@ -26,8 +26,7 @@ async def get_film_action(message: types.Message, state: FSMContext):
 
     elif (m == "удалить фильм") and (await isAdmin(user_id)):
         data = (await get_films())
-        await message.reply(f"Введите код фильма, который хотите удалть. Доступные фильмы:\n" +
-                            "\n".join([key + ' - ' + data[key]['title'] for key in (await get_films()).keys()]),
+        await message.reply("Введите код фильма, который хотите удалть.",
                             reply_markup=create_cancel())
         await state.finish()
         await FSMDF.code.set()

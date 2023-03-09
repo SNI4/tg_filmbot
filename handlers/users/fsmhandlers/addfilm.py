@@ -15,6 +15,7 @@ from keyboards.user_keyboards.default_reply import create_default
 from loader import dp
 from utils.json_worker.channels import add_channel, DublicateChannelError
 from utils.json_worker.films import get_films, save_film
+from utils.misc.kp_parser import check_kp, parse_kp
 from utils.misc.markreplace import markdowned
 
 
@@ -156,17 +157,17 @@ async def get_film_link(message: types.Message, state: FSMContext):
         if "https://" in message.text:
             await state.update_data(link=message.text)
             data = await state.get_data()
-            await message.answer_photo(caption=await markdowned(f"Код фильма: *{data['code']}*\n"
-                                                                f"Название фильма: *{data['name']}*"
-                                                                f"Описание фильма: *{data['desc']}*"
-                                                                f"Ссылка на фильм: "
-                                                                f"||P.S. Ссылка будет в виде *кнопки*||"),
-                                       photo=data['media'],
-                                       parse_mode="MarkdownV2")
+            m = await message.answer_photo(caption=await markdowned(f"Код фильма: *{data['code']}*\n"
+                                                                    f"Название фильма: *{data['name']}*"
+                                                                    f"Описание фильма: *{data['desc']}*"
+                                                                    f"Ссылка на фильм: "
+                                                                    f"||P.S. Ссылка будет в виде *кнопки*||"),
+                                           photo=data['media'],
+                                           parse_mode="MarkdownV2")
 
-            await message.reply("Сохраняем?",
-                                reply_markup=create_save())
-            await FSMAF.confirm.set()
+            await m.reply("Отправьте ID фильма на Кинопоиске",
+                          reply_markup=create_cancel())
+            await FSMAF.kp.set()
 
         else:
             await state.update_data(link="nolink")
@@ -177,12 +178,33 @@ async def get_film_link(message: types.Message, state: FSMContext):
                                            photo=data['media'],
                                            parse_mode="MarkdownV2")
 
-            await m.reply("Сохраняем?", reply_markup=create_save())
-            await FSMAF.confirm.set()
+            await m.reply("Отправьте ID фильма на Кинопоиске",
+                          reply_markup=create_cancel())
+            await FSMAF.kp.set()
     else:
         await message.reply("Ты отправил какую то *хуйню*! Попробуй еще раз.",
                             reply_markup=create_cancel(),
                             parse_mode="MarkdownV2")
+
+
+@dp.message_handler(state=FSMAF.kp)
+async def get_kp(message: types.Message, state: FSMContext):
+    if message.text.lower() == "отмена":
+        await state.finish()
+        await message.answer("ку",
+                             reply_markup=create_admin_default())
+
+    elif check_kp(message.text):
+        await message.reply(parse_kp(message.text))
+        await state.update_data(kp=message.text)
+        await message.answer("подтвердите",
+                             reply_markup=create_save())
+
+    else:
+        await message.reply("без кп")
+        await message.answer("подтвердите",
+                             reply_markup=create_save())
+        await FSMAF.confirm.set()
 
 
 @dp.message_handler(state=FSMAF.confirm)
